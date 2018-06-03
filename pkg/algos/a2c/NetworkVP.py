@@ -76,12 +76,12 @@ class NetworkVP(object):
         self.softmax_p = (tf.nn.softmax(self.logits_p - tf.reduce_max(self.logits_p)) + Config.MIN_POLICY) / (1.0 + Config.MIN_POLICY * self.num_actions)
         self.selected_action_prob = tf.reduce_sum(self.softmax_p * self.action_index, axis=1)
 
-        self.cost_p_1 = tf.log(tf.maximum(self.selected_action_prob, Config.LOG_EPSILON)) \
+        self.cost_p_1 = tf.log(self.selected_action_prob) \
                     * (self.y_r - tf.stop_gradient(self.logits_v))
         self.cost_p_2 = -1 * self.var_beta * \
-                    tf.reduce_sum(tf.log(tf.maximum(self.softmax_p, Config.LOG_EPSILON)) *
+                    tf.reduce_sum(tf.log(self.softmax_p) *
                                       self.softmax_p, axis=1)
-
+        
         self.cost_p_1_agg = tf.reduce_sum(self.cost_p_1, axis=0)
         self.cost_p_2_agg = tf.reduce_sum(self.cost_p_2, axis=0)
         self.cost_p = -(self.cost_p_1_agg + self.cost_p_2_agg)

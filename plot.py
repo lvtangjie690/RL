@@ -5,11 +5,15 @@ import sys
 colors = ['blue', 'green', 'red', 'magenta', \
             'darkblue', 'darkgreen', 'darkred', 'darkmagenta']
 
-def plot_results(max_episode=0):
+def plot_results(gamename=None, max_episode=0):
+    if gamename is None:
+        dir = 'results/'
+    else:
+        dir = 'results/' + gamename + '/'  
     plt.figure()
-    for idx, filename in enumerate(glob.glob('results/*.txt')):
+    for idx, filename in enumerate(glob.glob(dir+'*.txt')):
         with open(filename, 'r') as f:
-            label = filename.replace('_result.txt', '')
+            label = filename.split('/')[-1].replace('_result.txt', '')
             color = colors[idx]
             x_axis, y_axis = [], []
             for idx, line in enumerate(f.readlines()):
@@ -28,8 +32,6 @@ def plot_results(max_episode=0):
 
 if __name__ == '__main__':
     if len(sys.argv) > 1:
-        plot_results(int(sys.argv[1]))
+        plot_results(gamename='tinygame', max_episode=int(sys.argv[1]))
     else:
         plot_results()
-                
-                  

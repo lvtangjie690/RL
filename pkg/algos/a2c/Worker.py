@@ -6,12 +6,14 @@ from .Config import Config
 from .NetworkVP import NetworkVP
 from .Experience import Experience
 from ...game import Game
-from ...game.MessageParser import GameMessageParser
 from ...config import config as PkgConfig
+from ...game.MessageParser import GameMessageParser
+
 
 import numpy as np
 import queue
 import socket
+
 from multiprocessing import Process, Queue
 import random
 
@@ -89,6 +91,23 @@ class Worker(Process):
 
         self.model = NetworkVP(self.device, Config.NETWORK_NAME, state_space_size, action_space_size)
 
+
+    @staticmethod
+    def _accumulate_rewards(experiences, discount_factor, terminal_reward, done):
+        exp_length = len(experiences) if done else len(experiences)-1
+        reward_sum = terminal_reward
+        for t in reversed(range(0, exp_length)):
+            r = np.clip(experiences[t].reward, PkgConfig.REWARD_MIN, PkgConfig.REWARD_MAX)
+            reward_sum = discount_factor * reward_sum + r
+            experiences[t].reward = reward_sum
+        return experiences[:exp_length]
+
+    def convert_data(self, experiences):
+        x_ = np.array([exp.state for exp in experiences])
+        a_ = np.eye(self.num_actions)[np.array([exp.action for exp in experiences])].astype(np.float32)
+        r_ = np.array([exp.reward for exp in experiences])
+        return x_, r_, a_
+
     def select_action(self, prediction):
         if Config.PLAY_MODE:
             action = np.argmax(prediction)
@@ -113,25 +132,18 @@ class Worker(Process):
             prediction, value = self.predict_p_and_v(self.game.get_state())
             action = self.select_action(prediction)
             state, reward, done, next_state = self.game.step(action)
-            reward /= PkgConfig.REWARD_SCALE
+            reward /= PkgConfig.REWARD_SCALE 
             # state, action, reward, done, next_state
             reward_sum += reward
-            exp = Experience(state, action, prediction, reward, done, value)
+            exp = Experience(state, action, prediction, reward, done)
             experiences.append(exp)
 
             if done or time_count == PkgConfig.TIME_MAX:
-                #exp_length = len(experiences) if done else len(experiences) - 1
-                exp_length = len(experiences)
-                terminal_v = 0 if done else experiences[-1].value
-                r_ = terminal_v
-                for t in reversed(range(0, exp_length)):
-                    r = np.clip(experiences[t].reward, PkgConfig.REWARD_MIN, PkgConfig.REWARD_MAX)
-                    r_ = Config.DISCOUNT * r_ + r
-                    experiences[t].reward_sum = r_
+                terminal_reward = 0 if done else value
+                updated_exps = Worker._accumulate_rewards(experiences, self.discount_factor, terminal_reward, done)
 
-                updated_exps = experiences[:exp_length]
-                
-                yield updated_exps, terminal_v, reward_sum
+                x_, r_, a_ = self.convert_data(updated_exps)
+                yield x_, r_, a_, reward_sum
 
                 # reset the tmax count
                 time_count = 0
@@ -159,18 +171,14 @@ class Worker(Process):
         while True:
             total_reward = 0
             total_length = 0
-            for exps, terminal_v, reward_sum in self.run_episode():
+            for x_, r_, a_, reward_sum in self.run_episode():
                 total_reward += reward_sum
-                total_length += len(exps)
+                total_length += len(r_)
                 # send training data to the master
-                self.master.training_queue.put((self.id, exps, terminal_v))
+                self.master.training_queue.put((self.id, x_, r_, a_))
                 # recv model from master
-                model = None
-                while not self.model_queue.empty():
-                    model = self.model_queue.get()
-                if model:
-                    self.model.update(model)
-
+                model = self.model_queue.get()
+                self.model.update(model)
             # send log to master
             total_reward *= PkgConfig.REWARD_SCALE
             self.master.log_queue.put((total_reward, total_length))

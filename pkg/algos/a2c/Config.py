@@ -21,6 +21,7 @@ class Config:
 
     # Max size of the queue
     MAX_QUEUE_SIZE = 100
+    PREDICTION_BATCH_SIZE = 128
 
     # Total number of episodes and annealing frequency
     EPISODES = 400000
@@ -82,16 +83,11 @@ class Config:
 
     # Number of Trainers
     TRAINERS = 1
-    # Number of Predictors
-    PREDICTORS = 1
 
     # Master's device
     MASTER_DEVICE = '/gpu:0' 
+    # Worker's device
+    WORKER_DEVICE = '/cpu:0'
     
-    # train batch size
-    TRAINING_MIN_BATCH_SIZE = 32
-    # predict batch size
-    PREDICTION_MAX_BATCH_SIZE = 8
-    # policy lag in GA3C
-    LOG_EPSILON = 1e-6
-
+    # batch size
+    TRAINING_MIN_BATCH_SIZE = 128
