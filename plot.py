@@ -1,6 +1,7 @@
 import matplotlib.pyplot as plt
 import glob
 import sys
+import re
 
 colors = ['blue', 'green', 'red', 'magenta', \
             'darkblue', 'darkgreen', 'darkred', 'darkmagenta']
@@ -13,7 +14,7 @@ def plot_results(gamename=None, max_episode=0):
     plt.figure()
     for idx, filename in enumerate(glob.glob(dir+'*.txt')):
         with open(filename, 'r') as f:
-            label = filename.split('/')[-1].replace('_result.txt', '')
+            label = re.split('[\\\\/]', filename)[-1].replace('_result.txt', '')
             color = colors[idx]
             x_axis, y_axis = [], []
             for idx, line in enumerate(f.readlines()):
@@ -28,10 +29,11 @@ def plot_results(gamename=None, max_episode=0):
     plt.legend(loc='best')
     plt.xlabel('Episode')
     plt.ylabel('Reward')
+    plt.savefig(dir+'result.png')
     plt.show()
 
 if __name__ == '__main__':
-    if len(sys.argv) > 1:
-        plot_results(gamename='tinygame', max_episode=int(sys.argv[1]))
-    else:
-        plot_results()
+    if len(sys.argv) < 2:
+        print('Usage: python plot.py filename max_episode')
+        sys.exit(0)
+    plot_results(gamename=sys.argv[1], max_episode=int(sys.argv[2]))

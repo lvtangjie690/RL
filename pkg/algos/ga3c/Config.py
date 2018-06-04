@@ -89,7 +89,7 @@ class Config:
     MASTER_DEVICE = '/gpu:0' 
     
     # train batch size
-    TRAINING_MIN_BATCH_SIZE = 32
+    TRAINING_MIN_BATCH_SIZE = 128
     # predict batch size
     PREDICTION_MAX_BATCH_SIZE = 8
     # policy lag in GA3C

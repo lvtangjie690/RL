@@ -88,6 +88,3 @@ class Config:
     MASTER_DEVICE = '/gpu:0' 
     # Worker's device
     WORKER_DEVICE = '/cpu:0'
-    
-    # batch size
-    TRAINING_MIN_BATCH_SIZE = 128

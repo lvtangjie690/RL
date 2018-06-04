@@ -99,3 +99,6 @@ class Config:
     # correction params
     RHO = 1.
     C = 1.
+
+    # use exp_cache
+    USE_EXP_CACHE = False

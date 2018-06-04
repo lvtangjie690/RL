@@ -119,10 +119,10 @@ class Master(object):
     def init_model(self, state_space_size, action_space_size):
         self.model = NetworkVP(self.device, Config.NETWORK_NAME, state_space_size, action_space_size)
 
-    def put_sample(self, exps, terminal_v):
+    def put_sample(self, exps):
         while len(self.exp_cache) > self.max_cache_size:
             self.exp_cache.pop(0)
-        self.exp_cache.append((exps, terminal_v))
+        self.exp_cache.append(exps)
 
     def get_sample(self):
         while len(self.exp_cache) <= 0:

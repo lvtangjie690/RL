@@ -91,3 +91,6 @@ class Config:
     
     # batch size
     TRAINING_MIN_BATCH_SIZE = 128
+    
+    # use exp_cache
+    USE_EXP_CACHE = False

@@ -11,7 +11,7 @@ WORKER_BASE_PORT = 5000
 GAME_PUSH_ALGORITHM = False
 
 # use n(time_max) future reward (stop)
-TIME_MAX = 5
+TIME_MAX = 20
 
 # choose game
 # Game name

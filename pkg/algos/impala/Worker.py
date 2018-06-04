@@ -131,7 +131,7 @@ class Worker(Process):
 
                 updated_exps = experiences[:exp_length]
                 
-                yield updated_exps, terminal_v, reward_sum
+                yield updated_exps, reward_sum
 
                 # reset the tmax count
                 time_count = 0
@@ -159,11 +159,11 @@ class Worker(Process):
         while True:
             total_reward = 0
             total_length = 0
-            for exps, terminal_v, reward_sum in self.run_episode():
+            for exps, reward_sum in self.run_episode():
                 total_reward += reward_sum
                 total_length += len(exps)
                 # send training data to the master
-                self.master.training_queue.put((self.id, exps, terminal_v))
+                self.master.training_queue.put((self.id, exps))
                 # recv model from master
                 model = None
                 while not self.model_queue.empty():

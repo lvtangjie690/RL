@@ -12,7 +12,7 @@ class TrainingThread(Thread):
         self.master = master 
         self.id = id
 
-    def handle_exps(self, exps, terminal_v):
+    def handle_exps(self, exps):
         if len(exps) <= 0:
             return None
         if Config.OFF_POLICY_CORRECTION:
@@ -76,14 +76,15 @@ class TrainingThread(Thread):
         worker_ids = {}
         while batch_size <= Config.TRAINING_MIN_BATCH_SIZE:
             if from_cache:
-                exps, terminal_v = self.master.get_sample()   
+                exps = self.master.get_sample()   
             else:
-                id, exps, terminal_v = self.master.training_queue.get()
+                id, exps = self.master.training_queue.get()
                 worker_ids[id] = 1
-                self.master.put_sample(exps, terminal_v)
-                #exps, terminal_v = self.master.get_sample()   
+                self.master.put_sample(exps)
+                if Config.USE_EXP_CACHE:
+                    exps = self.master.get_sample()   
             #
-            x_, a_, r_, v_, rho_ = self.handle_exps(exps, terminal_v)
+            x_, a_, r_, v_, rho_ = self.handle_exps(exps)
             if batch_size == 0:
                 x__ = x_; r__ = r_; a__ = a_
                 v__ = v_; rho__ = rho_

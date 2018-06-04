@@ -18,8 +18,9 @@ class TrainingThread(Thread):
             worker_ids = {}
             while batch_size <= Config.TRAINING_MIN_BATCH_SIZE:
                 id, x_, r_, a_ = self.master.training_queue.get()
-                #self.master.put_sample(x_, r_, a_)
-                #x_, r_, a_ = self.master.get_sample()
+                if Config.USE_EXP_CACHE:
+                    self.master.put_sample(x_, r_, a_)
+                    x_, r_, a_ = self.master.get_sample()
                 worker_ids[id] = 1
                 #print('get training_q', x_, r_, a_)
                 if batch_size == 0:
