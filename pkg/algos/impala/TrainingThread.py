@@ -54,7 +54,6 @@ class TrainingThread(Thread):
                 vs.append(v)
                 exps[idx].v = v
                 exps[idx].rho = rho_[idx]
-
             #print('~~~~new reward_sum')
             #print([exp.reward_sum for exp in exps])
             #time.sleep(10000)

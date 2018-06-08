@@ -89,8 +89,8 @@ class Worker(Process):
 
         self.model = NetworkVP(self.device, Config.NETWORK_NAME, state_space_size, action_space_size)
 
-    def select_action(self, prediction):
-        if Config.PLAY_MODE:
+    def select_action(self, prediction, is_test=False):
+        if Config.PLAY_MODE or is_test:
             action = np.argmax(prediction)
         else:
             action = np.random.choice(self.actions, p=prediction)
@@ -100,7 +100,7 @@ class Worker(Process):
         predictions, values = self.model.predict_p_and_v([state,])
         return predictions[0], values[0]
 
-    def run_episode(self):
+    def run_episode(self, test=False):
         self.game.reset()
         done = False
         experiences = []
@@ -109,9 +109,8 @@ class Worker(Process):
         reward_sum = 0.0
 
         while not done:
-            # very first few frames
             prediction, value = self.predict_p_and_v(self.game.get_state())
-            action = self.select_action(prediction)
+            action = self.select_action(prediction, is_test=test)
             state, reward, done, next_state = self.game.step(action)
             reward /= PkgConfig.REWARD_SCALE
             # state, action, reward, done, next_state
@@ -156,6 +155,7 @@ class Worker(Process):
         time.sleep(np.random.rand())
         np.random.seed(np.int32(time.time() % 1 * 1000 + self.id * 10))
 
+        self.local_episode = 0
         while True:
             total_reward = 0
             total_length = 0
@@ -170,14 +170,16 @@ class Worker(Process):
                     model = self.model_queue.get()
                 if model:
                     self.model.update(model)
+                    #print('Worker %d update'%self.id)
 
             # send log to master
             total_reward *= PkgConfig.REWARD_SCALE
             self.master.log_queue.put((total_reward, total_length))
-
-if __name__ == "__main__":
-    if len(sys.argv) < 2:
-        print("Usage: python Worker.py id")
-        sys.exit(0)
-    worker = Worker(int(sys.argv[1]))
-    worker.run()
+            # test game
+            self.local_episode += 1
+            if self.local_episode % Config.TEST_STEP == 0:
+                total_reward = 0
+                for exps, reward_sum in self.run_episode(test=True):
+                    total_reward += reward_sum
+                total_reward *= PkgConfig.REWARD_SCALE
+                self.master.result_queue.put(total_reward)

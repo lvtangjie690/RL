@@ -54,12 +54,13 @@ class GameListenerThread(Thread):
 
 class Stats(Process):
 
-    MAX_RECENT_RESULTS_SIZE = 100
+    MAX_RECENT_RESULTS_SIZE = 10
 
-    def __init__(self, log_queue):
+    def __init__(self, log_queue, result_queue):
         super(Stats, self).__init__()
         self.log_queue = log_queue
-       
+        self.result_queue = result_queue
+
         self.episode_count = 0 
         self.recent_reward_results = []
         self.frame_count = 0
@@ -76,10 +77,13 @@ class Stats(Process):
                 total_reward, total_length = self.log_queue.get()
                 self.episode_count += 1
                 self.frame_count += total_length
-                self.recent_reward_results.append(total_reward)
+                while not self.result_queue.empty():
+                    test_reward = self.result_queue.get()
+                    self.recent_reward_results.append(test_reward)
                 while len(self.recent_reward_results) > self.MAX_RECENT_RESULTS_SIZE:
                     self.recent_reward_results.pop(0)
-                recent_avg_reward = sum(self.recent_reward_results)/float(len(self.recent_reward_results))
+                recent_avg_reward = sum(self.recent_reward_results)/float(len(self.recent_reward_results)) \
+                    if len(self.recent_reward_results) > 0 else None
                 if self.episode_count % 100 == 0:
                     if time.time() - self.last_time > 10:
                         self.last_fps = int((self.frame_count - self.last_frame_count)/(time.time() - self.last_time))
@@ -87,6 +91,8 @@ class Stats(Process):
                         self.last_time = time.time()
                     elif self.last_fps == 0:
                         self.last_fps = int(self.frame_count/(time.time() - self.last_time))
+                    if recent_avg_reward is None:
+                        continue
                     print(
                         'Episode %d: Recent Avg Reward %.2f, FPS %d'\
                         %(self.episode_count, recent_avg_reward, self.last_fps)
@@ -107,7 +113,8 @@ class Master(object):
         self.training_queue = Queue(maxsize=2048)
 
         self.log_queue = Queue(maxsize=100)
-        self.stats = Stats(self.log_queue) 
+        self.result_queue = Queue(maxsize=100)
+        self.stats = Stats(self.log_queue, self.result_queue)
 
         self.init_queue = Queue(maxsize=1)
     

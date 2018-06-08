@@ -3,14 +3,12 @@
 import sys, time
 
 from .Config import Config
-from .NetworkVP import NetworkVP
+from .NetworkVP import NetworkVP, DqnNetworks
 from .Experience import Experience
 from ...game import Game
 from ...game.MessageParser import GameMessageParser
 from ...config import config as PkgConfig
 
-
-from threading import Thread
 import numpy as np
 import queue
 import socket
@@ -77,7 +75,7 @@ class Worker(Process):
         self.model = None
 
         self.master = master
-        self.model_queue = Queue(maxsize=100)
+        self.model_queue = Queue(maxsize=1)
         self.local_episode = 0
         
         if PkgConfig.GAME_PUSH_ALGORITHM:
@@ -90,35 +88,21 @@ class Worker(Process):
         self.num_actions = action_space_size
         self.actions = np.arange(self.num_actions)
 
-        self.model = NetworkVP(self.device, Config.NETWORK_NAME, state_space_size, action_space_size)
+        model = NetworkVP(self.device, Config.NETWORK_NAME, state_space_size, action_space_size)
+        target_model = NetworkVP(self.device, Config.NETWORK_NAME, state_space_size, action_space_size)
+        # package model and target
+        self.model = DqnNetworks(model, target_model)
 
 
-    @staticmethod
-    def _accumulate_rewards(experiences, discount_factor, terminal_reward, done):
-        exp_length = len(experiences) if done else len(experiences)-1
-        reward_sum = terminal_reward
-        for t in reversed(range(0, exp_length)):
-            r = np.clip(experiences[t].reward, PkgConfig.REWARD_MIN, PkgConfig.REWARD_MAX)
-            reward_sum = discount_factor * reward_sum + r
-            experiences[t].reward = reward_sum
-        return experiences[:exp_length]
-
-    def convert_data(self, experiences):
-        x_ = np.array([exp.state for exp in experiences])
-        a_ = np.eye(self.num_actions)[np.array([exp.action for exp in experiences])].astype(np.float32)
-        r_ = np.array([exp.reward for exp in experiences])
-        return x_, r_, a_
-
-    def select_action(self, prediction, is_test=False):
+    def select_action(self, state, is_test=False):
         if Config.PLAY_MODE or is_test:
-            action = np.argmax(prediction)
+            action = self.model.predict([state,])[0]
         else:
-            action = np.random.choice(self.actions, p=prediction)
+            if np.random.random() < max(0.1, 1.0-self.local_episode/20000.*0.1):
+                action = np.random.randint(0, self.num_actions)
+            else:
+                action = self.model.predict([state,])[0]
         return action
-
-    def predict_p_and_v(self, state):
-        predictions, values = self.model.predict_p_and_v([state,])
-        return predictions[0], values[0]
 
     def run_episode(self, test=False):
         self.game.reset()
@@ -129,27 +113,21 @@ class Worker(Process):
         reward_sum = 0.0
 
         while not done:
-            # very first few frames
-            prediction, value = self.predict_p_and_v(self.game.get_state())
-            action = self.select_action(prediction, is_test=test)
+            # choose action
+            action = self.select_action(self.game.get_state(), is_test=test)
             state, reward, done, next_state = self.game.step(action)
             reward /= PkgConfig.REWARD_SCALE
             # state, action, reward, done, next_state
             reward_sum += reward
-            exp = Experience(state, action, prediction, reward, done)
+            exp = Experience(state, action, reward, done, next_state)
             experiences.append(exp)
 
-            if done or time_count == PkgConfig.TIME_MAX:
-                terminal_reward = 0 if done else value
-                updated_exps = Worker._accumulate_rewards(experiences, self.discount_factor, terminal_reward, done)
-
-                x_, r_, a_ = self.convert_data(updated_exps)
-                yield x_, r_, a_, reward_sum
-
+            if done or time_count >= Config.WORKER_DATA_SIZE:
+                yield experiences, reward_sum
                 # reset the tmax count
                 time_count = 0
                 # keep the last experience for the next batch
-                experiences = [experiences[-1]]
+                experiences = []
                 reward_sum = 0.0
 
             time_count += 1
@@ -161,32 +139,49 @@ class Worker(Process):
 
         state_space_size, action_space_size = self.game.get_game_model_info()
         self.init_model(state_space_size, action_space_size)
-
         self.master.init_queue.put((self.id, state_space_size, action_space_size))
-        model = self.model_queue.get()
+
+        # init model and target model
+        is_target, model = self.model_queue.get()
         self.model.update(model)
+        self.model.update(model, is_target=True)
 
         time.sleep(np.random.rand())
         np.random.seed(np.int32(time.time() % 1 * 1000 + self.id * 10))
         while True:
             total_reward = 0
             total_length = 0
-            for x_, r_, a_, reward_sum in self.run_episode():
+            for exps, reward_sum in self.run_episode():
                 total_reward += reward_sum
-                total_length += len(r_)
-                # compute gradients and send to the master
-                gradients = self.model.compute_gradients(x_, r_, a_)
-                self.master.gradients_queue.put((self.id, gradients))
-                # recv model from master
-                model = self.model_queue.get()
-                self.model.update(model)
+                total_length += len(exps)
+                # calc priority 
+                self.model.calc_priority(exps)
+                # put experience into training_queue
+                self.master.training_queue.put(exps)
+
             self.local_episode += 1
+            #print('local_episode', self.local_episode)
             # send log to master
             total_reward *= PkgConfig.REWARD_SCALE
             self.master.log_queue.put((total_reward, total_length))
+            # every 100 episode test one game, send result to the stats
             if self.local_episode % Config.TEST_STEP == 0:
                 total_reward = 0
-                for x_, r_, a_, reward_sum in self.run_episode(test=True):
+                for exps, reward_sum in self.run_episode(test=True):
                     total_reward += reward_sum
                 total_reward *= PkgConfig.REWARD_SCALE
-                self.master.result_queue.put(total_reward)
+                self.master.test_result_queue.put(total_reward)
+            # update model every N episodes
+            N = 50
+            if self.local_episode % N != 0:
+                continue
+            # try to recv the model
+            if not self.model_queue.empty():
+                # update model
+                is_target, model = self.model_queue.get()
+                if is_target:
+                    # update model and target
+                    self.model.update(model, is_target=True)
+                    self.model.update(model)
+                else:
+                    self.model.update(model)

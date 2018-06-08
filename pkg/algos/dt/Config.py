@@ -81,12 +81,15 @@ class Config:
     # Minimum policy
     MIN_POLICY = 0.01
 
-    # Number of Trainers
-    TRAINERS = 1
-
     # Master's device
     MASTER_DEVICE = '/gpu:0' 
     # Worker's device
     WORKER_DEVICE = '/cpu:0'
-    #
-    TEST_STEP = 100
+
+    LEARNING_RATE = 0.1
+
+    HISTORY_LIST_MIN_SIZE = 64
+    
+    ANNEALING_RATE = 10000.
+    
+    TEST_STEP = 10000

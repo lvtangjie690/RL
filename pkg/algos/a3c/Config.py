@@ -86,3 +86,6 @@ class Config:
 
     # DEVICE
     DEVICE = '/cpu:0' 
+
+    # test step
+    TEST_STEP = 100

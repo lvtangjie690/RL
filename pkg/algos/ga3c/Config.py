@@ -94,4 +94,5 @@ class Config:
     PREDICTION_MAX_BATCH_SIZE = 8
     # policy lag in GA3C
     LOG_EPSILON = 1e-6
-
+    # test step 
+    TEST_STEP = 100

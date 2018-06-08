@@ -3,8 +3,8 @@ import glob
 import sys
 import re
 
-colors = ['blue', 'green', 'red', 'magenta', \
-            'darkblue', 'darkgreen', 'darkred', 'darkmagenta']
+colors = ['blue', 'green', 'red', 'magenta', 'cyan', \
+            'darkblue', 'darkgreen', 'darkred', 'darkmagenta', 'darkcyan']
 
 def plot_results(gamename=None, max_episode=0):
     if gamename is None:

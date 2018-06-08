@@ -1,4 +1,3 @@
-
 class Config:
 
     #########################################################################
@@ -18,7 +17,7 @@ class Config:
 
     # Discount factor
     DISCOUNT = 0.99
-
+    
     # Max size of the queue
     MAX_QUEUE_SIZE = 100
     PREDICTION_BATCH_SIZE = 128
@@ -32,11 +31,13 @@ class Config:
     BETA_END = 0.0001
 
     # Learning rate
-    LEARNING_RATE_START = 0.0003
-    LEARNING_RATE_END = 0.0003
+    #LEARNING_RATE_START = 0.0003
+    #LEARNING_RATE_END = 0.0003
+    LEARNING_RATE_START = 0.00025
+    LEARNING_RATE_END = 0.00025
 
     # Optimizer (Adam or RMSProp)
-    OPTIMIZER = 'RMSProp'
+    OPTIMIZER = 'Adam'
 
     # AdamOptimizer parameters
     ADAM_BETA1 = 0.9
@@ -82,11 +83,27 @@ class Config:
     MIN_POLICY = 0.01
 
     # Number of Trainers
-    TRAINERS = 1
+    TRAINERS = 2
+    # Number of replay buffers
+    BUFFERS = 4
 
-    # Master's device
-    MASTER_DEVICE = '/gpu:0' 
-    # Worker's device
-    WORKER_DEVICE = '/cpu:0'
+    # DEVICE
+    DEVICE = '/cpu:0' 
+    # MASTER_DEVICE
+    MASTER_DEVICE = '/cpu:0'
+    # Worker's data size
+    WORKER_DATA_SIZE = 32
+
+    # whether use prioritized replay
+    USE_PRIORITY = False
+    P_ALPHA = 0.6
+    P_BETA_BASE = 0.5
+    P_MAX_BETA = 1.0
+    P_ANNEALED_STEP = 1e6
+    #
+    TRAINING_BATCH_SIZE = 256
+    #
+    MIN_BUFFER_SIZE = 1e4
+    MAX_BUFFER_SIZE = 2.5*1e5
     #
     TEST_STEP = 100

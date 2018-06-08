@@ -102,3 +102,6 @@ class Config:
 
     # use exp_cache
     USE_EXP_CACHE = False
+    
+    # test step
+    TEST_STEP = 100
