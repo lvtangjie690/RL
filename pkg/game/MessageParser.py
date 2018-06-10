@@ -51,7 +51,9 @@ class GameMessageParser(MessageParser):
         return action
 
     def send_action(self, sock ,action):
-        action = np.asscalar(action)
+        if type(action) == np.float32:
+            action = np.asscalar(action)
+        action = int(action)
         self.send(sock, action)
     
     def recv_sample(self, sock):

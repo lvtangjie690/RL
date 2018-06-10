@@ -92,4 +92,4 @@ class Config:
     
     ANNEALING_RATE = 10000.
     
-    TEST_STEP = 10000
+    TEST_STEP = 1000

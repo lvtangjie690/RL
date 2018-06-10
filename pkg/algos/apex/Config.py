@@ -31,10 +31,10 @@ class Config:
     BETA_END = 0.0001
 
     # Learning rate
-    #LEARNING_RATE_START = 0.0003
-    #LEARNING_RATE_END = 0.0003
     LEARNING_RATE_START = 0.00025
     LEARNING_RATE_END = 0.00025
+    #LEARNING_RATE_START = 0.005
+    #LEARNING_RATE_END = 0.005
 
     # Optimizer (Adam or RMSProp)
     OPTIMIZER = 'Adam'
@@ -95,7 +95,7 @@ class Config:
     WORKER_DATA_SIZE = 32
 
     # whether use prioritized replay
-    USE_PRIORITY = False
+    USE_PRIORITY = True
     P_ALPHA = 0.6
     P_BETA_BASE = 0.5
     P_MAX_BETA = 1.0
@@ -107,3 +107,5 @@ class Config:
     MAX_BUFFER_SIZE = 2.5*1e5
     #
     TEST_STEP = 100
+    #
+    GREEDY_ANNEALING_STEP = 1000

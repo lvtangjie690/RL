@@ -4,8 +4,7 @@ class Config:
     #########################################################################
     # Game configuration
     
-    PLAY_MODE = False
-
+    PLAY_MODE = False 
     # Enable to train
     TRAIN_MODELS = True
     # Load old models. Throws if the model doesn't exist
@@ -28,15 +27,15 @@ class Config:
     ANNEALING_EPISODE_COUNT = 400000
 
     # Entropy regualrization hyper-parameter
-    BETA_START = 0.0001
-    BETA_END = 0.0001
+    BETA_START = 1e-4
+    BETA_END = 1e-4
 
     # Learning rate
-    LEARNING_RATE_START = 0.0003
-    LEARNING_RATE_END = 0.0003
+    LEARNING_RATE_START = 0.00025
+    LEARNING_RATE_END = 0.00025
 
     # Optimizer (Adam or RMSProp)
-    OPTIMIZER = 'RMSProp'
+    OPTIMIZER = 'Adam'
 
     # AdamOptimizer parameters
     ADAM_BETA1 = 0.9

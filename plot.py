@@ -2,6 +2,7 @@ import matplotlib.pyplot as plt
 import glob
 import sys
 import re
+import numpy as np
 
 colors = ['blue', 'green', 'red', 'magenta', 'cyan', \
             'darkblue', 'darkgreen', 'darkred', 'darkmagenta', 'darkcyan']
@@ -20,11 +21,13 @@ def plot_results(gamename=None, max_episode=0):
             for idx, line in enumerate(f.readlines()):
                 episode, reward = line.split(' ')
                 episode, reward = int(episode), float(reward)
+                #reward = np.clip(reward, -500, 500)
                 if max_episode != 0 and episode > max_episode:
                     break
                 x_axis.append(episode)
                 y_axis.append(reward)
-            plt.plot(x_axis, y_axis, c=color, label=label)
+            linestyle = '--' if 'dark' in color else '-'
+            plt.plot(x_axis, y_axis, c=color, label=label, linestyle=linestyle)
     
     plt.legend(loc='best')
     plt.xlabel('Episode')

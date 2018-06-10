@@ -37,6 +37,8 @@ class GameListenerThread(Thread):
             
 class Master(object):
 
+    MAX_RECENT_RESULTS_SIZE = 10
+
     def __init__(self):
         self.workers = []
 
@@ -50,6 +52,8 @@ class Master(object):
         self.worker_cnt = 0
 
         self.game = getattr(Game, PkgConfig.GAME_NAME)()
+
+        self.recent_rewards = []
 
     def add_worker(self):
         worker = Worker(len(self.workers), self)
@@ -96,11 +100,15 @@ class Master(object):
                 action = [key for key, value in action_cnts.items() if value == sorted_cnts[0]][0]
                 state, reward, done, next_state = self.game.step(action)
                 total_reward += reward
+                self.recent_rewards.append(total_reward)
+                while len(self.recent_rewards) > self.MAX_RECENT_RESULTS_SIZE:
+                    self.recent_rewards.pop(0)
+                avg_reward = sum(self.recent_rewards)/float(len(self.recent_rewards))
             print(
                 'Episode %d: Reward %.2f'
-                %(episode_count, total_reward)
+                %(episode_count, avg_reward)
                 )
-            f.write('%d %.2f\n'%(episode_count, total_reward))
+            f.write('%d %.2f\n'%(episode_count, avg_reward))
             f.flush()
             # send done flag to workers
             for worker in self.workers:

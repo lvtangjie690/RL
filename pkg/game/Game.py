@@ -47,7 +47,7 @@ class PointGame(BaseGame):
         return 2, 4
 
     def reset(self):
-        observation = np.array([(random.random()-0.5)*10, (random.random()-0.5)*10], dtype='float32')
+        observation = np.array([(random.random()-0.5)*100, (random.random()-0.5)*100], dtype='float32')
         self.current_state = observation.copy()
         self.previous_state = observation.copy()
         self.frame_no = 0
@@ -66,13 +66,13 @@ class PointGame(BaseGame):
         self.previous_state = self.current_state.copy()
 
         def clip(value):
-            return max(-100, min(100, value))
+            return max(-10000, min(10000, value))
 
         def add_half(idx):
-            self.current_state[idx] = clip(self.current_state[idx] + self.current_state[idx]/2.0)
+            self.current_state[idx] = clip(self.current_state[idx] + abs(self.current_state[idx]/2.0))
 
         def reduce_half(idx):
-            self.current_state[idx] = clip(self.current_state[idx] - self.current_state[idx]/2.0)
+            self.current_state[idx] = clip(self.current_state[idx] - abs(self.current_state[idx]/2.0))
 
         if action == 0:
             add_half(0)

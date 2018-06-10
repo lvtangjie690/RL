@@ -50,8 +50,9 @@ class NetworkVP(object):
 
         self.global_step = tf.Variable(0, trainable=False, name='step')
 
-        self.action_index = tf.placeholder(tf.float32, [None, self.num_actions])
         self.weights = tf.placeholder(tf.float32, [None], name='weights')
+
+        self.actions = tf.placeholder(tf.int32, [None], name='actions') 
 
         # As implemented in A3C paper
         #self.n1 = self.conv2d_layer(self.x, 8, 16, 'conv11', strides=[1, 4, 4, 1])
@@ -69,7 +70,8 @@ class NetworkVP(object):
 
         self.q_value = self.dense_layer(self.d1, self.num_actions, 'q_value', func=None)
 
-        self.cost_all = tf.reduce_sum(self.weights*tf.square(tf.reduce_sum(self.q_value*self.action_index, axis=1)-self.q_label), axis=0)
+        #self.cost_all = tf.reduce_sum(self.weights*tf.reduce_sum(tf.square(self.q_value-self.q_label), axis=1), axis=0)
+        self.cost_all = tf.reduce_sum(self.weights*tf.square(tf.reduce_sum(self.q_value*tf.one_hot(self.actions, self.num_actions), axis=1)-self.q_label))
 
         if Config.OPTIMIZER == 'Adam':
             self.opt = tf.train.AdamOptimizer(
@@ -149,9 +151,9 @@ class NetworkVP(object):
         step = self.sess.run(self.global_step)
         return step
 
-    def train(self, x, q_label, a, weights):
+    def train(self, x, q_label, actions, weights):
         feed_dict = self.__get_base_feed_dict()
-        feed_dict.update({self.x: x, self.q_label: q_label, self.action_index: a, self.weights:weights})
+        feed_dict.update({self.x:x, self.q_label:q_label, self.actions:actions, self.weights:weights})
         self.sess.run(self.train_op, feed_dict=feed_dict)
 
     def predict(self, x):
@@ -244,7 +246,7 @@ class DqnNetworks(object):
     def train(self, exps):
         states = np.array([exp.state for exp in exps])
         q_labels = self.calc_q_labels(exps)
-        actions = np.eye(self.model.num_actions)[np.array([exp.action for exp in exps])].astype(np.float32)
+        actions = np.array([exp.action for exp in exps])
         weights = np.array([exp.weight for exp in exps])
         # do train
         self.model.train(states, q_labels, actions, weights)

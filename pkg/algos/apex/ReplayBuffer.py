@@ -1,8 +1,8 @@
 import bisect
-from multiprocessing import Queue, Process
+from multiprocessing import Process
 import numpy as np
 from .Config import Config
-import time, random
+import random
 
 class ReplayBuffer(Process):
 

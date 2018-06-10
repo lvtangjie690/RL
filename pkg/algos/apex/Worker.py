@@ -1,6 +1,6 @@
 # Copyright (c) 2016, hzlvtangjie. All rights reserved.
 
-import sys, time
+import time
 
 from .Config import Config
 from .NetworkVP import NetworkVP, DqnNetworks
@@ -98,7 +98,7 @@ class Worker(Process):
         if Config.PLAY_MODE or is_test:
             action = self.model.predict([state,])[0]
         else:
-            if np.random.random() < max(0.1, 1.0-self.local_episode/20000.*0.1):
+            if np.random.random() < max(0.1, 1.0-self.local_episode/Config.GREEDY_ANNEALING_STEP*0.1):
                 action = np.random.randint(0, self.num_actions)
             else:
                 action = self.model.predict([state,])[0]

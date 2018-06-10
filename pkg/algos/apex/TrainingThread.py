@@ -18,6 +18,7 @@ class TrainingThread(Thread):
                 self.master.model.calc_priority(exps)
                 self.master.training_queue.put(exps)
             with self.master.training_lock:
+                #print('!!!', self.master.model.calc_q_labels(exps))
                 self.master.training_step += 1
                 if self.master.training_step % 1000 == 0:
                     self.master.model.replace_target()

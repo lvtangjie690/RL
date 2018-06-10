@@ -31,11 +31,11 @@ class Config:
     BETA_END = 0.0001
 
     # Learning rate
-    LEARNING_RATE_START = 0.0003
-    LEARNING_RATE_END = 0.0003
+    LEARNING_RATE_START = 0.00025
+    LEARNING_RATE_END = 0.00025
 
     # Optimizer (Adam or RMSProp)
-    OPTIMIZER = 'RMSProp'
+    OPTIMIZER = 'Adam'
 
     # AdamOptimizer parameters
     ADAM_BETA1 = 0.9
