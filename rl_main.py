@@ -8,4 +8,9 @@ if __name__ == '__main__':
         sys.exit(0)
     if not os.path.exists("results/"):
         os.makedirs("results/")
-    globals()[config.ALGORITHM]().run(int(sys.argv[1]))
+    if config.ALGORITHM == 'dt':
+        # only one worker for using decision tree algorithm
+        workers = 1
+    else:
+        workers = int(sys.argv[1])
+    globals()[config.ALGORITHM]().run(workers)

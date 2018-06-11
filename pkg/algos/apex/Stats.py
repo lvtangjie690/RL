@@ -1,9 +1,10 @@
 from multiprocessing import Process, Value
 import time
+from .Config import Config
 
 class Stats(Process):
 
-    MAX_RECENT_RESULTS_SIZE = 10
+    MAX_RECENT_RESULTS_SIZE = 50
 
     def __init__(self, log_queue, result_queue):
         super(Stats, self).__init__()
@@ -17,6 +18,8 @@ class Stats(Process):
         self.last_frame_count = 0
         self.last_time = 0
         self.last_fps = 0
+
+        self.save_flag = Value('i', 0)
 
     def run(self):
         print("Stats starts running")
@@ -34,7 +37,7 @@ class Stats(Process):
             recent_avg_reward = None if len(self.recent_reward_results) <= 0 else \
                 sum(self.recent_reward_results)/float(len(self.recent_reward_results))
 
-            if self.episode_count.value % 100 == 0:
+            if self.episode_count.value % Config.STATS_SHOW_STEP == 0:
                 if time.time() - self.last_time > 10:
                     self.last_fps = int((self.frame_count - self.last_frame_count)/(time.time() - self.last_time))
                     self.last_frame_count = self.frame_count
@@ -49,4 +52,10 @@ class Stats(Process):
                     )
                 f.write('%d %.2f\n'%(self.episode_count.value, recent_avg_reward))
                 f.flush()
+            if Config.SAVE_FREQUENCY and self.episode_count.value % Config.SAVE_FREQUENCY == 0:
+                self.save_flag.value = 1
+
+            while self.save_flag.value:
+                time.sleep(0.1)
+            
         f.close()

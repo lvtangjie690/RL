@@ -93,3 +93,9 @@ class Config:
     ANNEALING_RATE = 10000.
     
     TEST_STEP = 1000
+
+    SAVE_FREQUENCY = 1000
+
+    LOAD_TREE = True
+
+    TRAIN_MODELS = False

@@ -1,6 +1,6 @@
 # Copyright (c) 2016, hzlvtangjie. All rights reserved.
 
-import sys, time
+import time
 
 from .Config import Config
 from .DecisionTree import DecisionTree
@@ -90,6 +90,9 @@ class Worker(Process):
         
         self.model = DecisionTree(action_space_size)
 
+        if Config.LOAD_TREE:
+            self.model.load()
+
     def select_action(self, state):
         if np.random.random() < max(0.1, 1.0-self.episode_count/Config.ANNEALING_RATE):
             action = np.random.choice(self.actions)
@@ -114,7 +117,8 @@ class Worker(Process):
             reward /= PkgConfig.REWARD_SCALE 
             # state, action, reward, done, next_state
             reward_sum += reward
-            self.model.train(state, action, reward, done, next_state)
+            if Config.TRAIN_MODELS:  
+                self.model.train(state, action, reward, done, next_state)
             frame_count += 1
 
         return reward_sum, frame_count
@@ -148,9 +152,5 @@ class Worker(Process):
                         q_values = self.model.get_q_values(state)
                         self.master.q_value_queue.put((self.episode_count, q_values))
 
-if __name__ == "__main__":
-    if len(sys.argv) < 2:
-        print("Usage: python Worker.py id")
-        sys.exit(0)
-    worker = Worker(int(sys.argv[1]))
-    worker.run()
+            if self.episode_count % Config.SAVE_FREQUENCY == 0: 
+                self.model.save()

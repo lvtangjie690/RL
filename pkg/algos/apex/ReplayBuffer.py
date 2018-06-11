@@ -40,6 +40,8 @@ class ReplayBuffer(Process):
                     self.sampled_queue.put((put_back, exps))
 
 class PrioritizedReplayBuffer(ReplayBuffer):
+    """rank based prioritized replay buffer
+    """
 
     def __init__(self, training_queue, sampled_queue):
         super(PrioritizedReplayBuffer, self).__init__(training_queue, sampled_queue)
@@ -130,3 +132,22 @@ class PrioritizedReplayBuffer(ReplayBuffer):
             exps.append(exp)
             offset += 1
         return True, exps
+
+#class InternalNode(object):
+#     
+#    def __init__(self):
+#
+#class 
+#
+#class SumTree(object):
+#
+#    def __ini
+#    
+#
+#class PrioritizedReplayBuffer2(ReplayBuffer):
+#    """ proportional prioriized replay buffer
+#    """
+#
+#    def __init__(self, training_queue, sampled_queue):
+#        super(PrioritizedReplayBuffer2, self).__init__(training_queue, sampled_queue)
+#        self.tree = 

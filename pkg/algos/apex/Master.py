@@ -76,6 +76,8 @@ class Master(object):
 
     def init_model(self, state_space_size, action_space_size):
         model = NetworkVP(self.device, Config.NETWORK_NAME, state_space_size, action_space_size)
+        if Config.LOAD_CHECKPOINT:
+            model.load()
         target_model = NetworkVP(self.device, Config.NETWORK_NAME, state_space_size, action_space_size)
         target_model.update(model.dumps())
         self.model = DqnNetworks(model, target_model)
@@ -139,7 +141,10 @@ class Master(object):
 
 
         while True:
-            time.sleep(10)
+            if self.stats.save_flag.value:
+                self.model.save(self.stats.episode_count.value)
+                self.stats.save_flag.value = 0
+            time.sleep(1)
 
         # close init_listener
         self.init_listener.join()

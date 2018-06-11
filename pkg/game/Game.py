@@ -47,7 +47,7 @@ class PointGame(BaseGame):
         return 2, 4
 
     def reset(self):
-        observation = np.array([(random.random()-0.5)*100, (random.random()-0.5)*100], dtype='float32')
+        observation = np.array([(random.random()-0.5)*100, (random.random()-0.5)*100], dtype=np.float32)
         self.current_state = observation.copy()
         self.previous_state = observation.copy()
         self.frame_no = 0
@@ -55,6 +55,15 @@ class PointGame(BaseGame):
 
     def get_state(self):
         return self.current_state.tolist()
+
+    def clip(self, value):
+        return max(-10000, min(10000, value))
+
+    def add_half(self, idx):
+        self.current_state[idx] = self.clip(self.current_state[idx] + abs(self.current_state[idx]/2.0))
+
+    def reduce_half(self, idx):
+        self.current_state[idx] = self.clip(self.current_state[idx] - abs(self.current_state[idx]/2.0))
 
     def step(self, action):
         """@return state, reward, done, next_state
@@ -65,27 +74,19 @@ class PointGame(BaseGame):
         self.frame_no += 1
         self.previous_state = self.current_state.copy()
 
-        def clip(value):
-            return max(-10000, min(10000, value))
-
-        def add_half(idx):
-            self.current_state[idx] = clip(self.current_state[idx] + abs(self.current_state[idx]/2.0))
-
-        def reduce_half(idx):
-            self.current_state[idx] = clip(self.current_state[idx] - abs(self.current_state[idx]/2.0))
 
         if action == 0:
-            add_half(0)
-            add_half(1)
+            self.add_half(0)
+            self.add_half(1)
         elif action == 1:
-            reduce_half(0)
-            reduce_half(1) 
+            self.reduce_half(0)
+            self.reduce_half(1) 
         elif action == 2:
-            add_half(0)
-            reduce_half(1)
+            self.add_half(0)
+            self.reduce_half(1)
         elif action == 3:
-            reduce_half(0)
-            add_half(1)
+            self.reduce_half(0)
+            self.add_half(1)
 
         distance = np.linalg.norm(self.current_state).item()
         reward = -distance
@@ -94,6 +95,36 @@ class PointGame(BaseGame):
 
         return self.previous_state.tolist(), reward, done, self.current_state.tolist()
 
+class PointGame12(PointGame):
+
+    def reset(self): 
+        observation = np.array([(random.random()-0.5)*100, random.random()*50], dtype=np.float32)
+        self.current_state = observation.copy()
+        self.previous_state = observation.copy()
+        self.frame_no = 0
+        return self.current_state.tolist(), 0, False, self.current_state.tolist()
+
+    def reduce_half(self, idx):
+        if idx == 1:
+            self.current_state[idx] = max(0., self.clip(self.current_state[idx] - abs(self.current_state[idx]/2.0)))
+        else:
+            self.current_state[idx] = self.clip(self.current_state[idx] - abs(self.current_state[idx]/2.0))
+
+class PointGame34(PointGame):
+    
+    def reset(self):
+        observation = np.array([(random.random()-0.5)*100, (random.random()-1.0)*50], dtype=np.float32)
+        self.current_state = observation.copy()
+        self.previous_state = observation.copy()
+        self.frame_no = 0
+        return self.current_state.tolist(), 0, False, self.current_state.tolist()
+       
+    def add_half(self, idx):
+        if idx == 1:
+            self.current_state[idx] = min(0., self.clip(self.current_state[idx] + abs(self.current_state[idx]/2.0)))
+        else:
+            self.current_state[idx] = self.clip(self.current_state[idx] + abs(self.current_state[idx]/2.0))
+           
 
 #----------------------------
 #   gym game

@@ -255,3 +255,6 @@ class DqnNetworks(object):
         if is_target:
             return self.target_model.dumps()
         return self.model.dumps()
+
+    def save(self, episode):
+        self.model.save(episode)

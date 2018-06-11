@@ -2,6 +2,8 @@
 import numpy as np
 import math
 #import bisect
+import json
+import os
 
 from .Config import Config
 
@@ -71,10 +73,8 @@ class DecisionNode(Node):
     def get_depth(self):
         return max(1+self.left_node.get_depth(), 1+self.right_node.get_depth())
 
-    def dump(self):
-        print('DecisionTree %d, %.2f'%(self.decision_idx, self.decision_bound))
-        self.left_node.dump()
-        self.right_node.dump()
+    def dumps(self):
+        return {'N':'D', 'L':self.left_node.dumps(), 'R':self.right_node.dumps(), 'I':str(self.decision_idx), 'B':str(self.decision_bound)}
 
 class LeafNode(Node):
 
@@ -229,12 +229,13 @@ class LeafNode(Node):
     def get_depth(self):
         return 1
 
-    def dump(self):
-        print('LeafNode: Q_values', self.q_values)
+    def dumps(self):
+        return {'N':'L', 'Q':json.dumps(self.q_values.tolist())}
 
 class DecisionTree(Node):
      
     def __init__(self, action_num):
+        self.action_num = action_num
         self.root = LeafNode(action_num, parent=self)
 
     def is_tree(self):
@@ -248,8 +249,32 @@ class DecisionTree(Node):
     def get_depth(self):
         return self.root.get_depth()
 
-    def dump(self):
-        self.root.dump()
+    def dumps(self):
+        return self.root.dumps()
+
+    def parse(self, dct, parent):
+        if dct.get('N', 'D') == 'D':
+            # decision node
+            node = DecisionNode(int(dct['I']), float(dct['B']), parent=parent)
+            node.left_node = self.parse(dct['L'], parent=node)
+            node.right_node = self.parse(dct['R'], parent=node)
+        else:
+            # leaf node
+            node = LeafNode(self.action_num, parent=parent)
+            node.q_values = np.array(json.loads(dct['Q']), dtype=np.float32)
+        return node
+
+    def save(self):
+        if not os.path.exists("dtfile/"):
+            os.makedirs("dtfile/")
+        with open("dtfile/dt.txt", "w") as f:
+            f.write(json.dumps(self.dumps()))
+            f.flush()
+
+    def load(self):
+        with open("dtfile/dt.txt", "r") as f:
+            root = self.parse(json.loads(f.read()), self)
+            self.root = root
 
     def train(self, s, a, r, done, s_n):
         self.add_transition((s, a, r, done, s_n))

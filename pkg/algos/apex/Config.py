@@ -90,7 +90,7 @@ class Config:
     # DEVICE
     DEVICE = '/cpu:0' 
     # MASTER_DEVICE
-    MASTER_DEVICE = '/cpu:0'
+    MASTER_DEVICE = '/gpu:0'
     # Worker's data size
     WORKER_DATA_SIZE = 32
 
@@ -109,3 +109,5 @@ class Config:
     TEST_STEP = 100
     #
     GREEDY_ANNEALING_STEP = 1000
+    # 
+    STATS_SHOW_STEP = 100

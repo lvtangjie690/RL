@@ -9,7 +9,7 @@ from ...game.MessageParser import MessageParser
 from ...config import config as PkgConfig
 from ...game import Game
 
-from multiprocessing import Queue, Value
+from multiprocessing import Queue
 import time
 import numpy as np
 
@@ -37,7 +37,7 @@ class GameListenerThread(Thread):
             
 class Master(object):
 
-    MAX_RECENT_RESULTS_SIZE = 10
+    MAX_RECENT_RESULTS_SIZE = 50
 
     def __init__(self):
         self.workers = []
@@ -45,7 +45,6 @@ class Master(object):
         self.device = Config.MASTER_DEVICE
 
         self.log_queue = Queue(maxsize=100)
-        self.test_flag = Value('i', 0)
         self.q_value_queue = Queue(maxsize=100)
 
         self.init_queue = Queue(maxsize=1)
@@ -100,10 +99,10 @@ class Master(object):
                 action = [key for key, value in action_cnts.items() if value == sorted_cnts[0]][0]
                 state, reward, done, next_state = self.game.step(action)
                 total_reward += reward
-                self.recent_rewards.append(total_reward)
-                while len(self.recent_rewards) > self.MAX_RECENT_RESULTS_SIZE:
-                    self.recent_rewards.pop(0)
-                avg_reward = sum(self.recent_rewards)/float(len(self.recent_rewards))
+            self.recent_rewards.append(total_reward)
+            while len(self.recent_rewards) > self.MAX_RECENT_RESULTS_SIZE:
+                self.recent_rewards.pop(0)
+            avg_reward = sum(self.recent_rewards)/float(len(self.recent_rewards))
             print(
                 'Episode %d: Reward %.2f'
                 %(episode_count, avg_reward)
