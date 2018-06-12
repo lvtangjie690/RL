@@ -11,6 +11,9 @@ class Experience(object):
         # important weight
         self.weight = 1.
 
+        # index
+        self.id = None
+
 
     def __eq__(self, e):
         return self.priority == e.priority

@@ -13,13 +13,13 @@ class TrainingThread(Thread):
     def run(self):
         print('TrainingThread Starts Running')
         while True:
-            put_back, exps = self.master.sampled_queue.get()
+            replay_buffer_id, put_back, exps = self.master.sampled_queue.get()
             if Config.TRAIN_MODELS:
                 self.master.model.train(exps)
             if put_back:
                 if Config.TRAIN_MODELS:
                     self.master.model.calc_priority(exps)
-                self.master.training_queue.put(exps)
+                self.master.replay_buffers[replay_buffer_id].unique_training_queue.put(exps)
             if not Config.TRAIN_MODELS:
                 continue
             with self.master.training_lock:

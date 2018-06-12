@@ -9,7 +9,7 @@ from .NetworkVP import NetworkVP, DqnNetworks
 from .Worker import Worker
 from ...game.MessageParser import MessageParser
 from ...config import config as PkgConfig
-from .ReplayBuffer import ReplayBuffer, PrioritizedReplayBuffer
+from .ReplayBuffer import ReplayBuffer, RPReplayBuffer, PPReplayBuffer
 from .TrainingThread import TrainingThread
 from .Stats import Stats
 
@@ -105,9 +105,9 @@ class Master(object):
 
     def add_replay_buffer(self):
         if Config.USE_PRIORITY:
-            rb = PrioritizedReplayBuffer(self.training_queue, self.sampled_queue)
+            rb = PPReplayBuffer(len(self.replay_buffers), self.training_queue, self.sampled_queue)
         else:
-            rb = ReplayBuffer(self.training_queue, self.sampled_queue)
+            rb = ReplayBuffer(len(self.replay_buffers), self.training_queue, self.sampled_queue)
         self.replay_buffers.append(rb)
         self.replay_buffers[-1].start()
 

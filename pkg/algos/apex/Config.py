@@ -106,8 +106,10 @@ class Config:
     MIN_BUFFER_SIZE = 1e4
     MAX_BUFFER_SIZE = 2.5*1e5
     #
-    TEST_STEP = 100
+    TEST_STEP = 1000
     #
     GREEDY_ANNEALING_STEP = 1000
     # 
     STATS_SHOW_STEP = 100
+    # 
+    PRIORITY_EPSILON = 1e-8

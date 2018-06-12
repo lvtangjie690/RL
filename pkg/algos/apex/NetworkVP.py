@@ -234,7 +234,7 @@ class DqnNetworks(object):
         rewards = np.array([exp.reward for exp in exps])
         td_errors = rewards + Config.DISCOUNT*q_target_values - q_values
         for idx, td_error in enumerate(td_errors):
-            exps[idx].priority = abs(td_error)
+            exps[idx].priority = abs(td_error) + Config.PRIORITY_EPSILON
 
     def calc_q_labels(self, exps):
         # compute q_target_values
