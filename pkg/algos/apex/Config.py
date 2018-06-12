@@ -62,7 +62,7 @@ class Config:
     TENSORBOARD_UPDATE_FREQUENCY = 1000
 
     # Enable to save models every SAVE_FREQUENCY episodes
-    SAVE_MODELS = True
+    SAVE_MODELS = False
     # Save every SAVE_FREQUENCY episodes
     SAVE_FREQUENCY = 1000
     

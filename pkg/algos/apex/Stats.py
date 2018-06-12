@@ -52,7 +52,7 @@ class Stats(Process):
                     )
                 f.write('%d %.2f\n'%(self.episode_count.value, recent_avg_reward))
                 f.flush()
-            if Config.SAVE_FREQUENCY and self.episode_count.value % Config.SAVE_FREQUENCY == 0:
+            if Config.SAVE_MODELS and self.episode_count.value % Config.SAVE_FREQUENCY == 0:
                 self.save_flag.value = 1
 
             while self.save_flag.value:

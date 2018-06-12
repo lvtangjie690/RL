@@ -31,14 +31,13 @@ class NetworkVP(object):
                 self.sess.run(tf.global_variables_initializer())
 
                 if Config.TENSORBOARD: self._create_tensor_board()
-                if Config.LOAD_CHECKPOINT or Config.SAVE_MODELS:
-                    self.vars = tf.global_variables()
-                    self.saver = tf.train.Saver({var.name: var for var in self.vars}, max_to_keep=0)
-                    self.var_list = []
-                    self.update_op = []
-                    for id, var in enumerate(self.vars):    
-                        self.var_list.append(tf.placeholder(var.dtype, shape = var.get_shape()))
-                        self.update_op.append(tf.assign(self.vars[id], self.var_list[id]))
+                self.vars = tf.global_variables()
+                self.saver = tf.train.Saver({var.name: var for var in self.vars}, max_to_keep=0)
+                self.var_list = []
+                self.update_op = []
+                for id, var in enumerate(self.vars):    
+                    self.var_list.append(tf.placeholder(var.dtype, shape = var.get_shape()))
+                    self.update_op.append(tf.assign(self.vars[id], self.var_list[id]))
 
 
     def _create_graph(self):
