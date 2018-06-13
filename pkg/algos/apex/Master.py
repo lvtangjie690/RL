@@ -9,7 +9,7 @@ from .NetworkVP import NetworkVP, DqnNetworks
 from .Worker import Worker
 from ...game.MessageParser import MessageParser
 from ...config import config as PkgConfig
-from .ReplayBuffer import ReplayBuffer, RPReplayBuffer, PPReplayBuffer
+from .ReplayBuffer import ReplayBuffer, PPReplayBuffer
 from .TrainingThread import TrainingThread
 from .Stats import Stats
 

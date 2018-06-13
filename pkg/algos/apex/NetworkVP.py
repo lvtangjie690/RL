@@ -67,7 +67,14 @@ class NetworkVP(object):
         #self.fc2 = self.dense_layer(self.fc1, 16, 'fc2')
         self.d1 = self.dense_layer(self.fc1, 128, 'dense1')
 
-        self.q_value = self.dense_layer(self.d1, self.num_actions, 'q_value', func=None)
+        if Config.DUELING_NETWORK:
+            self.a_value = self.dense_layer(self.d1, self.num_actions, 'a_value', func=None)
+            self.v = self.dense_layer(self.d1, 1, 'v_value', func=None)
+       
+            self.W = tf.constant(1.0, shape=[1, self.num_actions], dtype=tf.float32)
+            self.q_value = self.a_value + tf.matmul(self.v - tf.reduce_mean(self.a_value, axis=[1], keep_dims=True), self.W)
+        else:
+            self.q_value = self.dense_layer(self.d1, self.num_actions, 'q_value', func=None)
 
         #self.cost_all = tf.reduce_sum(self.weights*tf.reduce_sum(tf.square(self.q_value-self.q_label), axis=1), axis=0)
         self.cost_all = tf.reduce_sum(self.weights*tf.square(tf.reduce_sum(self.q_value*tf.one_hot(self.actions, self.num_actions), axis=1)-self.q_label))

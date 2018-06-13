@@ -100,16 +100,23 @@ class Config:
     P_BETA_BASE = 0.5
     P_MAX_BETA = 1.0
     P_ANNEALED_STEP = 1e6
-    #
+    PRIORITY_EPSILON = 1e-8
+
+    # whether use deuling network
+    DUELING_NETWORK = False
+
+    # batch size
     TRAINING_BATCH_SIZE = 256
-    #
+
+    # replay buffer size
     MIN_BUFFER_SIZE = 1e4
     MAX_BUFFER_SIZE = 2.5*1e5
-    #
-    TEST_STEP = 1000
-    #
+
+    # step for test result
+    TEST_STEP = 100
+
+    # epsilon annealing speed
     GREEDY_ANNEALING_STEP = 1000
-    # 
+
+    # step of display test result
     STATS_SHOW_STEP = 100
-    # 
-    PRIORITY_EPSILON = 1e-8

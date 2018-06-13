@@ -16,9 +16,9 @@ TIME_MAX = 5
 
 # choose game
 # Game name
-# GAME_NAME = 'PointGame'
+GAME_NAME = 'PointGame'
 # GAME_NAME = 'GymGame'
-GAME_NAME = 'TinyGame'
+# GAME_NAME = 'TinyGame'
 
 # if choose GymGame, select the gym env
 # CartPole-v0, MountainCar-v0
@@ -26,4 +26,4 @@ GYM_GAME = 'CartPole-v0'
 
 REWARD_MIN = -100.   # algorithm_reward will be clipped between (MIN, MAX)
 REWARD_MAX = 100.
-REWARD_SCALE = 5000. # algorithm_reward = game_reward / REWARD_SCALE
+REWARD_SCALE = 1. # algorithm_reward = game_reward / REWARD_SCALE
