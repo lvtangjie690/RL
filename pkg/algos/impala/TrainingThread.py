@@ -58,6 +58,7 @@ class TrainingThread(Thread):
             #print([exp.reward_sum for exp in exps])
             #time.sleep(10000)
         else:
+            exps = exps if exps[-1].done else exps[:len(exps)-1]
             for exp in exps:
                 exp.v = exp.reward_sum
                 exp.rho = 1.

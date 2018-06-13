@@ -123,7 +123,8 @@ class Worker(Process):
                 exp_length = len(experiences)
                 terminal_v = 0 if done else experiences[-1].value
                 r_ = terminal_v
-                for t in reversed(range(0, exp_length)):
+                iteration_range = exp_length if done else exp_length-1
+                for t in reversed(range(0, iteration_range)):
                     r = np.clip(experiences[t].reward, PkgConfig.REWARD_MIN, PkgConfig.REWARD_MAX)
                     r_ = Config.DISCOUNT * r_ + r
                     experiences[t].reward_sum = r_
