@@ -1,4 +1,4 @@
-# a3c, ga3c, gca3c, impala, a2c
+# a2c, a3c, ga3c, gca3c, impala
 # dt, apex
 ALGORITHM = 'apex'
 
